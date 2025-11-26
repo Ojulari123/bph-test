@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// Available time slots that admin can manage
+model AvailableSlot {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  date      DateTime
+  time      String
+  isBooked  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("available_slots")
+}
+
+model ConsultationApplication {
+  id                      String   @id @default(auto()) @map("_id") @db.ObjectId
+  fullName                String
+  businessEmail           String
+  companyName             String
+  industrySector          String
+  currentBusinessStage    String
+  primaryServiceInterest  String
+  targetFundingAmount     String?
+  businessSummary         String
+  status                  String   @default("pending")
+  scheduledDate           DateTime
+  scheduledTime           String
+  submittedAt             DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@map("consultation_applications")
+}
+
+model LoanApplication {
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  fullName              String
+  email                 String
+  phoneNumber           String
+  loanType              String
+  loanAmount            String
+  repaymentPeriod       String
+  
+  employmentStatus      String?
+  monthlyIncome         String?
+  loanPurpose           String?
+  
+  businessName          String?
+  businessRegistration  String?
+  yearEstablished       String?
+  monthlyRevenue        String?
+  businessPurpose       String?
+  
+  assetType             String?
+  assetValue            String?
+  assetDescription      String?
+  purposeOfAsset        String?
+  
+  status                String   @default("pending")
+  submittedAt           DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("loan_applications")
+}
+
+model Admin {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  username  String   @unique
+  password  String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model ConsultationAdmin {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  username  String   @unique
+  password  String
+  role      String   @default("consultation")
+  createdAt DateTime @default(now())
+
+  @@map("consultation_admins")
+}
+
+model LoanAdmin {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  username  String   @unique
+  password  String
+  role      String   @default("loan")
+  createdAt DateTime @default(now())
+
+  @@map("loan_admins")
+}
+
+model Resource {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  category      String
+  title         String
+  description   String
+  imageUrl      String?  // ADD THIS - Optional placeholder image
+  fileUrl       String
+  filePublicId  String?
+  fileSize      String
+  fileType      String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  downloads     ResourceDownload[]
+
+  @@map("resources")
+}
+
+model ResourceDownload {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  email         String
+  resourceId    String   @db.ObjectId
+  resourceTitle String
+  downloadedAt  DateTime @default(now())
+
+  resource      Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@map("resource_downloads")
+}
+
+model FAQ {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  question  String
+  answer    String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("faqs")
+}
+
+model Insight {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  category      String
+  title         String
+  description   String
+  image         String
+  imagePublicId String?  // ADD THIS LINE
+  content       String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("insights")
+}

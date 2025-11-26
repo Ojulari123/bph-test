@@ -1,0 +1,43 @@
+#Backend .env
+# Server Configuration
+PORT=5000
+NODE_ENV=production
+
+# Database - MongoDB Atlas
+DATABASE_URL="mongodb+srv://bph_admin:v0CKrVMJIcFeOzbA@bph-growth-cluster.iqhrr0k.mongodb.net/bph-growth?retryWrites=true&w=majority&appName=bph-growth-cluster"
+
+# JWT Secret
+JWT_SECRET=7177f40d0bd22e99781ca8fbb3174d4caa6475ef7570ec1d4d4fd5324decdd9917d7fd5db372272e0ada739b130f84a26c787fbd75f539ff3ae627977272cd13
+JWT_EXPIRES_IN=7d
+
+# Resend API Key (get from https://resend.com)
+RESEND_API_KEY=re_PfGBTSSS_HcXJmQx8SEgiYu32y6hGvYEG
+
+# Email Configuration
+EMAIL_FROM_NOREPLY="BPH Growth <noreply@bphgrowth.com>"
+EMAIL_SUPPORT="support@bphgrowth.com"
+EMAIL_ADMIN="support@bphgrowth.com"
+
+# Cloudinary Configuration (get from https://cloudinary.com)
+CLOUDINARY_CLOUD_NAME=dlkbk3qfi
+CLOUDINARY_API_KEY=153676738397826
+CLOUDINARY_API_SECRET=-3lslna6tlJ1L4SEQx0YBdVH648
+
+# Frontend URL (for CORS)
+FRONTEND_URL=http://localhost:5173
+
+# API URL (for resource downloads)
+# API_URL=https://api.bphgrowth.com
+# OR if backend on same domain:
+# API_URL=https://bphgrowth.com/api
+
+# Admin Passwords (temporary - will be hashed)
+CONSULTATION_ADMIN_USERNAME=consultation_admin
+CONSULTATION_ADMIN_PASSWORD=consultation123
+
+LOAN_ADMIN_USERNAME=loan_admin
+LOAN_ADMIN_PASSWORD=loan123
+
+
+#frontend .env
+VITE_API_URL=http://localhost:5000/api
