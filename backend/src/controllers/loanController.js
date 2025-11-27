@@ -355,13 +355,22 @@ import {
 // Helper function to determine if it's a personal loan (case-insensitive)
 const isPersonalLoan = (loanType) => {
   if (!loanType) return false
-  return loanType.toLowerCase().trim().includes('personal')
-}
   
+  const normalizedType = loanType.toLowerCase().trim()
+  
+  // Check if it contains "personal" (covers "Personal Loans", "Personal Loan", "Personal Asset Financing")
+  if (normalizedType.includes('personal')) {
+    return true
+  }
+  
+  return false
+}
+
 // Submit loan application
 export const submitLoan = async (req, res) => {
   try {
     const loanData = req.body
+
     // Extract email - handle both 'email' and 'businessEmail' field names
     const userEmail = loanData.businessEmail || loanData.email
     const loanType = loanData.loanType
@@ -374,7 +383,10 @@ export const submitLoan = async (req, res) => {
     })
 
     // Save to database
-    const loan = await prisma.loanApplication.create({ data: loanData })
+    const loan = await prisma.loanApplication.create({
+      data: loanData
+    })
+
     console.log('✅ Loan created:', loan.id)
 
     // Send confirmation emails based on loan type
@@ -465,11 +477,13 @@ export const submitLoan = async (req, res) => {
 export const getAllLoans = async (req, res) => {
   try {
     const { status, loanType, page = 1, limit = 10 } = req.query
+
     const where = {}
     if (status) where.status = status
     if (loanType) where.loanType = loanType
 
     const skip = (page - 1) * limit
+
     const [loans, total] = await Promise.all([
       prisma.loanApplication.findMany({
         where,
@@ -504,7 +518,10 @@ export const getAllLoans = async (req, res) => {
 export const getLoanById = async (req, res) => {
   try {
     const { id } = req.params
-    const loan = await prisma.loanApplication.findUnique({ where: { id } })
+
+    const loan = await prisma.loanApplication.findUnique({
+      where: { id }
+    })
 
     if (!loan) {
       return res.status(404).json({
@@ -531,10 +548,12 @@ export const getLoanById = async (req, res) => {
 export const approveLoan = async (req, res) => {
   try {
     const { id } = req.params
+
     const loan = await prisma.loanApplication.update({
       where: { id },
       data: { status: 'approved' }
     })
+
     console.log('✅ Loan approved:', loan.id)
 
     // Extract email and loan type
@@ -594,10 +613,12 @@ export const approveLoan = async (req, res) => {
 export const denyLoan = async (req, res) => {
   try {
     const { id } = req.params
+
     const loan = await prisma.loanApplication.update({
       where: { id },
       data: { status: 'denied' }
     })
+
     console.log('❌ Loan denied:', loan.id)
 
     // Extract email and loan type
@@ -630,6 +651,7 @@ export const denyLoan = async (req, res) => {
           })
         })
       }
+
       console.log('✅ Denial email sent to:', userEmail)
     } catch (emailError) {
       console.error('⚠️ Denial email failed:', emailError.message)
@@ -654,7 +676,10 @@ export const denyLoan = async (req, res) => {
 export const deleteLoan = async (req, res) => {
   try {
     const { id } = req.params
-    await prisma.loanApplication.delete({ where: { id } })
+
+    await prisma.loanApplication.delete({
+      where: { id }
+    })
 
     res.status(200).json({
       success: true,

@@ -7,6 +7,7 @@ export const getAllFAQs = async (req, res) => {
       where: { isActive: true },
       orderBy: { createdAt: 'desc' }
     })
+
     res.status(200).json({
       success: true,
       data: faqs
@@ -27,6 +28,7 @@ export const getAllFAQsAdmin = async (req, res) => {
     const faqs = await prisma.fAQ.findMany({
       orderBy: { createdAt: 'desc' }
     })
+
     res.status(200).json({
       success: true,
       data: faqs
@@ -46,15 +48,12 @@ export const createFAQ = async (req, res) => {
   try {
     const { question, answer } = req.body
 
-    if (!question || !answer) {
-      return res.status(400).json({
-        success: false,
-        message: 'Question and answer are required'
-      })
-    }
-
     const faq = await prisma.fAQ.create({
-      data: { question, answer, isActive: true }
+      data: {
+        question,
+        answer,
+        isActive: true
+      }
     })
 
     res.status(201).json({
@@ -78,15 +77,11 @@ export const updateFAQ = async (req, res) => {
     const { id } = req.params
     const { question, answer, isActive } = req.body
 
-    if (!id) {
-      return res.status(400).json({ success: false, message: 'FAQ ID is required' })
-    }
-
     const faq = await prisma.fAQ.update({
       where: { id },
       data: {
-        ...(question !== undefined && { question }),
-        ...(answer !== undefined && { answer }),
+        question,
+        answer,
         ...(isActive !== undefined && { isActive })
       }
     })
@@ -111,11 +106,9 @@ export const deleteFAQ = async (req, res) => {
   try {
     const { id } = req.params
 
-    if (!id){
-      return res.status(400).json({ success: false, message: 'FAQ ID is required' })
-    }
-
-    await prisma.fAQ.delete({ where: { id } })
+    await prisma.fAQ.delete({
+      where: { id }
+    })
 
     res.status(200).json({
       success: true,
@@ -135,18 +128,10 @@ export const deleteFAQ = async (req, res) => {
 export const toggleFAQStatus = async (req, res) => {
   try {
     const { id } = req.params
-    if (!id){
-      return res.status(400).json({ 
-        success: false, message: 'FAQ ID is required' 
-      })
-    }
 
-    const faq = await prisma.fAQ.findUnique({ where: { id } })
-    if (!faq){
-      return res.status(404).json({ 
-        success: false, message: 'FAQ not found' 
-      })
-    }
+    const faq = await prisma.fAQ.findUnique({
+      where: { id }
+    })
 
     if (!faq) {
       return res.status(404).json({

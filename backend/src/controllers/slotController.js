@@ -4,8 +4,9 @@ import { prisma } from '../config/database.js'
 export const createSlot = async (req, res) => {
   try {
     const { date, time } = req.body
-    const slotDate = new Date(date)// Validate date format
-    
+
+    // Validate date format
+    const slotDate = new Date(date)
     if (isNaN(slotDate.getTime())) {
       return res.status(400).json({
         success: false,
@@ -14,7 +15,11 @@ export const createSlot = async (req, res) => {
     }
 
     // Check if slot already exists
-    const existingSlot = await prisma.availableSlot.findFirst({ where: { date: slotDate, time: time }
+    const existingSlot = await prisma.availableSlot.findFirst({
+      where: {
+        date: slotDate,
+        time: time
+      }
     })
 
     if (existingSlot) {
@@ -32,6 +37,7 @@ export const createSlot = async (req, res) => {
         isBooked: false
       }
     })
+
     console.log('✅ Slot created:', slot.id)
 
     res.status(201).json({
@@ -69,43 +75,67 @@ export const createMultipleSlots = async (req, res) => {
         message: 'Times array is required and must not be empty'
       })
     }
-    //Adjusted the logic here to make it faster by reducing the amount of queries
-    const slotsToCreate = []
 
+    const slotsCreated = []
+
+    // Generate all combinations of dates and times
     for (const dateStr of dates) {
       const slotDate = new Date(dateStr)
+      
       if (isNaN(slotDate.getTime())) {
-        return res.status(400).json({ success: false, message: `Invalid date format: ${dateStr}` })
+        return res.status(400).json({
+          success: false,
+          message: `Invalid date format: ${dateStr}`
+        })
       }
 
       for (const time of times) {
-        slotsToCreate.push({ date: slotDate, time, isBooked: false })
+        // Check if slot already exists
+        const existingSlot = await prisma.availableSlot.findFirst({
+          where: {
+            date: slotDate,
+            time: time
+          }
+        })
+
+        if (!existingSlot) {
+          // Create individual slot (MongoDB doesn't support createMany with skipDuplicates)
+          const slot = await prisma.availableSlot.create({
+            data: {
+              date: slotDate,
+              time,
+              isBooked: false
+            }
+          })
+          slotsCreated.push(slot)
+        }
       }
     }
 
-    // Filter out duplicates
-    const existingSlots = await prisma.availableSlot.findMany({
-      where: { OR: slotsToCreate.map(s => ({ date: s.date, time: s.time })) }
-    })
-    const existingSet = new Set(existingSlots.map(s => `${s.date.toISOString()}-${s.time}`))
-    const newSlots = slotsToCreate.filter(s => !existingSet.has(`${s.date.toISOString()}-${s.time}`))
-
-    if (newSlots.length === 0) {
-      return res.status(400).json({ success: false, message: 'All specified time slots already exist' })
+    if (slotsCreated.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'All specified time slots already exist'
+      })
     }
 
-    const createdSlots = await Promise.all(newSlots.map(s => prisma.availableSlot.create({ data: s })))
-
-    console.log(`✅ Created ${createdSlots.length} slots`)
+    console.log(`✅ Created ${slotsCreated.length} slots`)
 
     res.status(201).json({
       success: true,
-      message: `${createdSlots.length} time slot(s) created successfully`,
-      data: { count: createdSlots.length, slots: createdSlots }
+      message: `${slotsCreated.length} time slot(s) created successfully`,
+      data: {
+        count: slotsCreated.length,
+        slots: slotsCreated
+      }
     })
   } catch (error) {
     console.error('Error creating multiple slots:', error)
-    res.status(500).json({ success: false, message: 'Failed to create time slots', error: error.message })
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create time slots',
+      error: error.message
+    })
   }
 }
 
@@ -118,6 +148,7 @@ export const getAllSlots = async (req, res) => {
         { time: 'asc' }
       ]
     })
+
     console.log(`📊 Total slots in database: ${slots.length}`)
 
     res.status(200).json({
@@ -138,6 +169,7 @@ export const getAllSlots = async (req, res) => {
 export const getAvailableSlots = async (req, res) => {
   try {
     console.log('🔍 Getting all unbooked slots')
+    
     const slots = await prisma.availableSlot.findMany({
       where: {
         isBooked: false
@@ -148,15 +180,16 @@ export const getAvailableSlots = async (req, res) => {
         { time: 'asc' }
       ]
     })
+
     console.log(`📤 Found ${slots.length} slots`)
-    //Only useful when debugging
-    // if (slots.length > 0) {
-    //   console.log(`📤 First slot:`, {
-    //     id: slots[0].id,
-    //     date: slots[0].date,
-    //     time: slots[0].time
-    //   })
-    // }
+    
+    if (slots.length > 0) {
+      console.log(`📤 First slot:`, {
+        id: slots[0].id,
+        date: slots[0].date,
+        time: slots[0].time
+      })
+    }
 
     res.status(200).json({
       success: true,
@@ -179,8 +212,11 @@ export const getAvailableSlots = async (req, res) => {
 export const deleteSlot = async (req, res) => {
   try {
     const { id } = req.params
+
     // Check if slot exists
-    const slot = await prisma.availableSlot.findUnique({ where: { id } })
+    const slot = await prisma.availableSlot.findUnique({
+      where: { id }
+    })
 
     if (!slot) {
       return res.status(404).json({
@@ -188,6 +224,7 @@ export const deleteSlot = async (req, res) => {
         message: 'Time slot not found'
       })
     }
+
     // Don't allow deleting booked slots
     if (slot.isBooked) {
       return res.status(400).json({
@@ -197,7 +234,10 @@ export const deleteSlot = async (req, res) => {
     }
 
     // Delete slot
-    await prisma.availableSlot.delete({ where: { id } })
+    await prisma.availableSlot.delete({
+      where: { id }
+    })
+
     console.log(`🗑️ Deleted slot: ${id}`)
 
     res.status(200).json({

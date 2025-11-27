@@ -1,4 +1,3 @@
-import { v2 as cloudinary } from 'cloudinary'
 import { uploadImageToCloudinary } from '../config/cloudinary.js'
 import multer from 'multer'
 
@@ -25,7 +24,7 @@ export const uploadToCloudinary = async (file, folder = 'insights') => {
     const result = await uploadImageToCloudinary(file.buffer, folder)
     return result
   } catch (error) {
-    throw new Error(`Cloudinary upload failed: ${error?.message || JSON.stringify(error)}`)
+    throw new Error(`Cloudinary upload failed: ${error.message}`)
   }
 }
 
@@ -36,14 +35,4 @@ export const deleteFromCloudinary = async (publicId) => {
   } catch (error) {
     console.error('Cloudinary delete error:', error)
   }
-}
-
-export const handleMulterError = (err, req, res, next) => {
-  if (err instanceof multer.MulterError || err.message.includes('Only image files')) {
-    return res.status(400).json({
-      success: false,
-      message: err.message,
-    })
-  }
-  next(err)
 }

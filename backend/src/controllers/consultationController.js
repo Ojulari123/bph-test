@@ -253,16 +253,16 @@ export const submitConsultation = async (req, res) => {
       slotId
     } = req.body
 
-    if (!fullName || !businessEmail || !slotId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Full name, business email, and slotId are required'
-      })
-    }
-    console.log('🔥 Consultation submission:', { fullName, businessEmail, slotId })
+    console.log('🔥 Consultation submission:', { 
+      fullName, 
+      businessEmail, 
+      slotId 
+    })
 
     // Get the slot details
-    const slot = await prisma.availableSlot.findUnique({ where: { id: slotId } })
+    const slot = await prisma.availableSlot.findUnique({
+      where: { id: slotId }
+    })
 
     if (!slot) {
       return res.status(400).json({
@@ -335,6 +335,7 @@ export const submitConsultation = async (req, res) => {
           businessSummary: consultation.businessSummary
         })
       })
+
       console.log('✅ Confirmation emails sent successfully')
     } catch (emailError) {
       console.error('⚠️ Email sending failed:', emailError.message)
@@ -360,7 +361,9 @@ export const submitConsultation = async (req, res) => {
 export const getAllConsultations = async (req, res) => {
   try {
     const consultations = await prisma.consultationApplication.findMany({
-      orderBy: { submittedAt: 'desc' }
+      orderBy: {
+        submittedAt: 'desc'
+      }
     })
 
     res.status(200).json({
@@ -381,9 +384,6 @@ export const getAllConsultations = async (req, res) => {
 export const approveConsultation = async (req, res) => {
   try {
     const { id } = req.params
-    if (!id) {
-      return res.status(400).json({ success: false, message: 'Consultation ID is required' })
-    }
 
     const consultation = await prisma.consultationApplication.update({
       where: { id },
@@ -406,6 +406,7 @@ export const approveConsultation = async (req, res) => {
           companyName: consultation.companyName
         })
       })
+
       console.log('✅ Approval email sent to:', consultation.businessEmail)
     } catch (emailError) {
       console.error('⚠️ Approval email failed:', emailError.message)
@@ -430,9 +431,6 @@ export const approveConsultation = async (req, res) => {
 export const denyConsultation = async (req, res) => {
   try {
     const { id } = req.params
-    if (!id) {
-      return res.status(400).json({ success: false, message: 'Consultation ID is required' })
-    }
 
     const consultation = await prisma.consultationApplication.update({
       where: { id },
@@ -453,6 +451,7 @@ export const denyConsultation = async (req, res) => {
           companyName: consultation.companyName
         })
       })
+
       console.log('✅ Denial email sent to:', consultation.businessEmail)
     } catch (emailError) {
       console.error('⚠️ Denial email failed:', emailError.message)

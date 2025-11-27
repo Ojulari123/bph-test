@@ -32,40 +32,68 @@ export const authenticateToken = (req, res, next) => {
   }
 }
 
-const ROLE_GROUPS = {
-  admin: ['admin', 'consultation_admin', 'loan_admin'],
-  consultation: ['admin', 'consultation_admin'],
-  loan: ['admin', 'loan_admin']
-}
-
-const checkRole = (allowedRoles) => {
-  return (req, res, next) => {
-    try {
-      if (!req.user || !req.user.role) {
-        return res.status(401).json({
-          success: false,
-          message: 'Unauthorized: no user context found'
-        })
-      }
-
-      if (!allowedRoles.includes(req.user.role)) {
-        return res.status(403).json({
-          success: false,
-          message: 'Access denied: insufficient role permissions'
-        })
-      }
-
-      next()
-    } catch (error) {
-      res.status(500).json({
+// Updated: Accept ALL admin types
+export const authorizeAdmin = (req, res, next) => {
+  try {
+    const allowedRoles = ['admin', 'consultation_admin', 'loan_admin']
+    
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({
         success: false,
-        message: 'Authorization error',
-        error: error.message
+        message: 'Access denied. Admin privileges required.'
       })
     }
+    
+    next()
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Authorization error',
+      error: error.message
+    })
   }
 }
 
-export const authorizeAdmin = checkRole(ROLE_GROUPS.admin)
-export const authorizeConsultationAdmin = checkRole(ROLE_GROUPS.consultation)
-export const authorizeLoanAdmin = checkRole(ROLE_GROUPS.loan)
+// For consultation-specific routes
+export const authorizeConsultationAdmin = (req, res, next) => {
+  try {
+    const allowedRoles = ['admin', 'consultation_admin']
+    
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Consultation admin role required.'
+      })
+    }
+    
+    next()
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Authorization error',
+      error: error.message
+    })
+  }
+}
+
+// For loan-specific routes
+export const authorizeLoanAdmin = (req, res, next) => {
+  try {
+    const allowedRoles = ['admin', 'loan_admin']
+    
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Loan admin role required.'
+      })
+    }
+    
+    next()
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Authorization error',
+      error: error.message
+    })
+  }
+}

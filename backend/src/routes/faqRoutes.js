@@ -1,6 +1,4 @@
 import express from 'express'
-import { publicLimiter, adminLimiter } from '../middleware/rateLimiter.js'
-import { faqSchema, idParamSchema } from '../utils/validators.js'
 import {
   getAllFAQs,
   getAllFAQsAdmin,
@@ -10,6 +8,7 @@ import {
   toggleFAQStatus
 } from '../controllers/faqController.js'
 import { authenticateToken, authorizeAdmin } from '../middleware/auth.js'
+import { publicLimiter, adminLimiter } from '../middleware/ratelimiters.js'
 
 const router = express.Router()
 
@@ -18,9 +17,9 @@ router.get('/', publicLimiter, getAllFAQs)
 
 // Admin routes (require authentication)
 router.get('/admin', authenticateToken, authorizeAdmin, adminLimiter, getAllFAQsAdmin)
-router.post('/', authenticateToken, authorizeAdmin, adminLimiter, validateRequest(faqSchema), createFAQ)
-router.put('/:id', authenticateToken, authorizeAdmin, adminLimiter, validateRequest(idParamSchema), validateRequest(faqSchema), updateFAQ)
-router.delete('/:id', authenticateToken, authorizeAdmin, adminLimiter, validateRequest(idParamSchema), deleteFAQ)
-router.patch('/:id/toggle', authenticateToken, authorizeAdmin, adminLimiter, validateRequest(idParamSchema), toggleFAQStatus)
+router.post('/', authenticateToken, authorizeAdmin, adminLimiter, createFAQ)
+router.put('/:id', authenticateToken, authorizeAdmin, adminLimiter, updateFAQ)
+router.delete('/:id', authenticateToken, authorizeAdmin, adminLimiter, deleteFAQ)
+router.patch('/:id/toggle', authenticateToken, authorizeAdmin,adminLimiter, toggleFAQStatus)
 
 export default router

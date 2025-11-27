@@ -6,13 +6,6 @@ export const createInsight = async (req, res) => {
   try {
     const { category, title, description, content, imageUrl, imagePublicId } = req.body
 
-    if (!category || !title || !description || !content) {
-      return res.status(400).json({
-        success: false,
-        message: 'Category, title, description, and content are required'
-      })
-    }
-
     // Create insight in database
     const insight = await prisma.insight.create({
       data: {
@@ -88,13 +81,11 @@ export const getAllInsightsAdmin = async (req, res) => {
 export const getInsightById = async (req, res) => {
   try {
     const { id } = req.params
-    if (!id){
-      return res.status(400).json({
-        success: false, message: 'Insight ID is required' 
-      })
-    }
 
-    const insight = await prisma.insight.findUnique({ where: { id } })
+    const insight = await prisma.insight.findUnique({
+      where: { id }
+    })
+
     if (!insight) {
       return res.status(404).json({
         success: false,
@@ -153,12 +144,11 @@ export const updateInsight = async (req, res) => {
     const { id } = req.params
     const { category, title, description, content, imageUrl, imagePublicId, isActive } = req.body
 
-    if (!id){
-      return res.status(400).json({ success: false, message: 'Insight ID is required' })
-    }
-
     // Check if insight exists
-    const existingInsight = await prisma.insight.findUnique({ where: { id } })
+    const existingInsight = await prisma.insight.findUnique({
+      where: { id }
+    })
+
     if (!existingInsight) {
       return res.status(404).json({
         success: false,
@@ -170,13 +160,13 @@ export const updateInsight = async (req, res) => {
     const insight = await prisma.insight.update({
       where: { id },
       data: {
-        ...(category !== undefined && { category }),
-        ...(title !== undefined && { title }),
-        ...(description !== undefined && { description }),
-        ...(content !== undefined && { content }),
+        category,
+        title,
+        description,
+        content,
         image: imageUrl || existingInsight.image,
         imagePublicId: imagePublicId || existingInsight.imagePublicId,
-        ...(isActive !== undefined && { isActive })
+        isActive
       }
     })
 
@@ -199,12 +189,12 @@ export const updateInsight = async (req, res) => {
 export const deleteInsight = async (req, res) => {
   try {
     const { id } = req.params
-    if (!id){
-      return res.status(400).json({ success: false, message: 'Insight ID is required' })
-    }
 
     // Get insight
-    const insight = await prisma.insight.findUnique({ where: { id } })
+    const insight = await prisma.insight.findUnique({
+      where: { id }
+    })
+
     if (!insight) {
       return res.status(404).json({
         success: false,
@@ -213,7 +203,10 @@ export const deleteInsight = async (req, res) => {
     }
 
     // Delete insight from database
-    await prisma.insight.delete({ where: { id } })
+    await prisma.insight.delete({
+      where: { id }
+    })
+
     res.status(200).json({
       success: true,
       message: 'Insight deleted successfully'
@@ -232,11 +225,11 @@ export const deleteInsight = async (req, res) => {
 export const toggleInsightStatus = async (req, res) => {
   try {
     const { id } = req.params
-    if (!id){
-      return res.status(400).json({ success: false, message: 'Insight ID is required' })
-    }
 
-    const insight = await prisma.insight.findUnique({ where: { id } })
+    const insight = await prisma.insight.findUnique({
+      where: { id }
+    })
+
     if (!insight) {
       return res.status(404).json({
         success: false,
